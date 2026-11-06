@@ -45,3 +45,6 @@ example
 # variables de entorno y credenciales
 .env
 google-services.json
+
+# configuración local de herramientas (no va al repo)
+.claude/
