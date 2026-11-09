@@ -19,7 +19,14 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.denguetrace.app"
+      "package": "com.denguetrace.app",
+      "config": {
+        "googleMaps": {}
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "output": "server",
@@ -58,6 +65,12 @@
         "projectId": "8dbbdd1f-541a-4b52-bb7f-dc12d88a8205"
       }
     },
-    "owner": "marcoruizc"
+    "owner": "marcoruizc",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8dbbdd1f-541a-4b52-bb7f-dc12d88a8205"
+    }
   }
 }
