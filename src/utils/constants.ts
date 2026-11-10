@@ -9,7 +9,7 @@ export const SYMPTOM_LABELS: Record<Symptom, string> = {
 };
 
 export const RISK_META: Record<RiskLevel, { label: string; color: string }> = {
-  LOW: { label: 'Bajo', color: '#FCD9A8' },
+  LOW: { label: 'Bajo', color: '#16A34A' },
   MEDIUM: { label: 'Medio', color: '#F59E0B' },
   HIGH: { label: 'Alto', color: '#DC2626' },
   CRITICAL: { label: 'Muy alto', color: '#7F1D1D' },
