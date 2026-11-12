@@ -1,56 +1,62 @@
-# Welcome to your Expo app 👋
+# DengueTrace — App Móvil
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicación móvil (React Native + Expo) de DengueTrace, la plataforma de vigilancia y predicción del dengue en Perú. Consume exclusivamente la API REST de [DengueTrace-Backend](https://github.com/elireyes-web/DengueTrace-Backend).
 
-## Get started
+- **Build de Android (EAS):** https://expo.dev/accounts/marcoruizc/projects/denguetrace/builds/31d3d616-996f-4c8b-827d-9836f737da31 (APK para Android)
+- **Web:** [DengueTrace-Web](https://github.com/marcoruizc-cpu/DengueTrace-Web)
 
-1. Install dependencies
+## Stack
 
-   ```bash
-   npm install
-   ```
+Expo SDK 58 · React Native · TypeScript · Expo Router · Axios · expo-secure-store · React Hook Form + Zod · react-native-maps · expo-location · expo-sensors · expo-notifications · NetInfo
 
-2. Start the app
+## Funcionalidades
 
-   ```bash
-   npx expo start
-   ```
+- Registro, inicio de sesión y perfil, con la sesión guardada en **SecureStore** (Keychain/Keystore) y renovación automática del token.
+- Cliente Axios centralizado con interceptores, `AbortController` y reintentos con backoff en GET.
+- Pestañas: Mapa de riesgo, Modelo predictivo, Reporte de síntomas, Alertas/Noticias y Perfil.
+- **Sensores:** GPS (expo-location) para ubicar al usuario y asociar el reporte a su distrito, y acelerómetro (expo-sensors), con manejo de permisos y alternativas si no están disponibles.
+- **APIs externas:** mapas (react-native-maps) y clima actual (Open-Meteo).
+- Notificaciones push con Firebase Cloud Messaging (en builds de EAS).
+- Detección de conexión con banner "Sin conexión", estados de carga, error con reintento y vacío.
 
-In the output, you'll find options to open the app in a
+## Cómo correrlo
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Requisitos: Node 20 o superior y la app **Expo Go** en el celular.
 
 ```bash
-npm run reset-project
+npm install
+cp .env.example .env   # en Windows: copy .env.example .env
+npx expo start --clear
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Escanear el código QR con Expo Go. El celular y la computadora deben estar en la misma red si el backend es local.
 
-### Other setup steps
+## Variables de entorno
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+| Variable | Descripción |
+| --- | --- |
+| `EXPO_PUBLIC_API_URL` | URL base de la API, por ejemplo `http://<ip-del-backend>:8080/api/v1`. Desde el celular no se puede usar `localhost`: va la IP de la computadora o del servidor. |
 
-## Learn more
+En los builds de EAS, las variables se configuran con `eas env:create` (entorno `preview`); la key de Google Maps para Android y `google-services.json` también van como variables secretas de EAS, nunca en el repositorio.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Estructura
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```text
+src/
+  app/         rutas de Expo Router: (auth), (tabs), district/[id]
+  api/         cliente Axios, SecureStore y errores
+  services/    una capa por recurso del backend
+  contexts/    estado global de la sesión
+  hooks/       useAuth, useFetch, red, push, ubicación, sensores
+  components/  componentes reutilizables
+  screens/     pantallas
+  types/       tipos que reflejan los DTOs del backend
+  utils/       constantes, geolocalización, tema
+```
 
-## Join the community
+## Build y publicación
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npx eas-cli@latest build -p android --profile preview   # genera el APK instalable
+npx eas-cli@latest update --branch preview --message "fix: ..."   # corrige JS sin recompilar
+```
