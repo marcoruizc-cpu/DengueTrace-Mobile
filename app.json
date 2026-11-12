@@ -49,7 +49,15 @@
           "locationWhenInUsePermission": "DengueTrace usa tu ubicación para asociar tu reporte al distrito correcto y mostrarte el riesgo cercano."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
