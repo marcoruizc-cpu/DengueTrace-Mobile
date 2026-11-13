@@ -5,6 +5,7 @@ import { DistrictPicker } from '../components/DistrictPicker';
 import { MapCanvas } from '../components/map/MapCanvas';
 import { Message, Panel, RiskBadge } from '../components/analytics/OverviewUI';
 import { WeatherPanel } from '../components/analytics/WeatherPanel';
+import catalog from '../data/distritos.json';
 import { useAuth } from '../hooks/useAuth';
 import { useFetch } from '../hooks/useFetch';
 import { alertService } from '../services/alertService';
@@ -14,6 +15,37 @@ import { haversineKm } from '../utils/geo';
 import { colors } from '../utils/theme';
 
 const PRIORITY: Record<RiskLevel, number> = { LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 };
+const referenceDistricts = catalog.map(district => ({ ...district, id: district.ubigeo }));
+const referenceLima = referenceDistricts.find(district => district.ubigeo === '150101') ?? referenceDistricts[0];
+const referenceRisks = {};
+
+function ReferenceMap({ reload }: { reload: () => void }) {
+  const [districtId, setDistrictId] = useState<string | null>(referenceLima.id);
+  const selected = referenceDistricts.find(district => district.id === districtId);
+
+  return (
+    <>
+      <Message
+        text="El servidor todavía no tiene distritos registrados. Puedes consultar el catálogo geográfico de referencia."
+        action="Actualizar distritos"
+        onAction={reload}
+      />
+      <DistrictPicker label="Buscar distrito de referencia" value={districtId} onChange={setDistrictId}
+        districts={referenceDistricts} emptyLabel="Seleccionar distrito" />
+      <View style={s.map}>
+        <MapCanvas districts={referenceDistricts} selectedId={districtId} risks={referenceRisks} onSelect={setDistrictId} />
+      </View>
+      <Text style={s.subtitle}>Acerca el mapa o usa el buscador para localizar un distrito.</Text>
+      {selected ? (
+        <Panel title={selected.name} subtitle={`${selected.province} · ${selected.department}`}>
+          <Text style={s.subtitle}>Ubigeo {selected.ubigeo}</Text>
+          <Text style={s.subtitle}>Capital distrital: {selected.latitude.toFixed(5)}, {selected.longitude.toFixed(5)}</Text>
+          <Text style={s.subtitle}>Los reportes, las alertas y las predicciones requieren el registro del distrito en el servidor.</Text>
+        </Panel>
+      ) : null}
+    </>
+  );
+}
 
 export default function MapScreen() {
   const { user } = useAuth();
@@ -22,7 +54,9 @@ export default function MapScreen() {
   const [chosenDistrictId, setSelectedId] = useState<number | null>(null);
   const preferred = districts.data?.find(d => d.id === user?.districtId);
   const lima = districts.data?.find(d => d.name.toLowerCase() === 'lima');
-  const selectedId = chosenDistrictId ?? (preferred ?? lima ?? districts.data?.[0])?.id ?? null;
+  const chosen = districts.data?.find(d => d.id === chosenDistrictId);
+  const selected = chosen ?? preferred ?? lima ?? districts.data?.[0];
+  const selectedId = selected?.id ?? null;
 
   const risks = useMemo(() => {
     const result: Record<number, RiskLevel> = {};
@@ -35,13 +69,21 @@ export default function MapScreen() {
     return result;
   }, [alerts.data]);
 
-  const selected = districts.data?.find(d => d.id === selectedId);
   const nearby = useMemo(() => {
     if (!selected || selected.latitude == null || selected.longitude == null) return [];
     return (districts.data ?? []).filter(d => d.latitude != null && d.longitude != null)
       .map(d => ({ ...d, km: haversineKm(selected.latitude!, selected.longitude!, d.latitude!, d.longitude!) }))
       .sort((a, b) => a.km - b.km).slice(0, 8);
   }, [districts.data, selected]);
+
+  if (!districts.loading && !districts.error && districts.data?.length === 0) {
+    return (
+      <ScrollView contentContainerStyle={s.page}>
+        <Text style={s.title}>Mapa de distritos</Text>
+        <ReferenceMap reload={districts.reload} />
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={s.page}>

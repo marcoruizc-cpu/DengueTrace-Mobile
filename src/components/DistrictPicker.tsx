@@ -1,32 +1,47 @@
 import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import type { District } from '../types/api';
 import { colors } from '../utils/theme';
 
-interface DistrictPickerProps {
+type DistrictOption<Id> = {
+  id: Id;
+  name: string;
+  department: string;
+  province: string | null;
+};
+
+interface DistrictPickerProps<Id extends number | string> {
   label: string;
-  value: number | null;
-  onChange: (districtId: number | null) => void;
-  districts: District[] | null;
+  value: Id | null;
+  onChange: (districtId: Id | null) => void;
+  districts: DistrictOption<Id>[] | null;
   loading?: boolean;
   emptyLabel?: string;
   error?: string;
 }
 
-/** Selector de distrito con buscador, en un modal. */
-export function DistrictPicker({ label, value, onChange, districts, loading, emptyLabel = 'Elegir después', error }: DistrictPickerProps) {
+function searchable(value: string) {
+  return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+export function DistrictPicker<Id extends number | string>({
+  label, value, onChange, districts, loading, emptyLabel = 'Elegir después', error,
+}: DistrictPickerProps<Id>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const selected = districts?.find(d => d.id === value);
+  const empty = districts?.length === 0;
+  const fieldText = loading ? 'Cargando distritos…' : empty ? 'No hay distritos registrados' :
+    selected ? `${selected.name} · ${selected.department}` : emptyLabel;
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = searchable(query.trim());
     if (!districts) return [];
     if (!q) return districts;
-    return districts.filter(d => d.name.toLowerCase().includes(q) || d.department.toLowerCase().includes(q));
+    return districts.filter(district =>
+      searchable([district.name, district.province, district.department].join(' ')).includes(q));
   }, [districts, query]);
 
-  const choose = (id: number | null) => {
+  const choose = (id: Id | null) => {
     onChange(id);
     setOpen(false);
     setQuery('');
@@ -37,13 +52,13 @@ export function DistrictPicker({ label, value, onChange, districts, loading, emp
       <Text style={styles.label}>{label}</Text>
       <Pressable
         onPress={() => setOpen(true)}
-        disabled={loading}
+        disabled={loading || empty}
         accessibilityRole="button"
-        accessibilityLabel={`${label}: ${selected?.name ?? emptyLabel}`}
+        accessibilityLabel={`${label}: ${fieldText}`}
         style={[styles.field, error ? { borderColor: colors.danger } : null]}
       >
         <Text style={{ color: selected ? colors.text : colors.textMuted }}>
-          {loading ? 'Cargando distritos…' : selected ? `${selected.name} (${selected.department})` : emptyLabel}
+          {fieldText}
         </Text>
       </Pressable>
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -54,7 +69,8 @@ export function DistrictPicker({ label, value, onChange, districts, loading, emp
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Buscar distrito o departamento"
+            placeholder="Distrito, provincia o departamento"
+            accessibilityLabel="Buscar distrito, provincia o departamento"
             placeholderTextColor={colors.textMuted}
             style={styles.search}
             autoCorrect={false}
@@ -72,7 +88,7 @@ export function DistrictPicker({ label, value, onChange, districts, loading, emp
             renderItem={({ item }) => (
               <Pressable onPress={() => choose(item.id)} style={[styles.option, item.id === value && styles.optionSelected]}>
                 <Text style={styles.optionText}>{item.name}</Text>
-                <Text style={styles.optionSub}>{item.department}</Text>
+                <Text style={styles.optionSub}>{[item.province, item.department].filter(Boolean).join(' · ')}</Text>
               </Pressable>
             )}
           />

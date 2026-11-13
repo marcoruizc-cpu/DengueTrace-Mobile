@@ -10,25 +10,28 @@ const RISK_COLORS = {
   CRITICAL: '#7F1D1D',
 } as const;
 
-export function MapCanvas({ districts, selectedId, risks, onSelect }: MapCanvasProps) {
+export function MapCanvas<Id extends number | string>({ districts, selectedId, risks, onSelect }: MapCanvasProps<Id>) {
   const frame = useRef<HTMLIFrameElement>(null);
   const markers = useMemo(() => districts
     .filter(d => d.latitude != null && d.longitude != null && Number.isFinite(d.latitude) && Number.isFinite(d.longitude))
-    .map(d => ({
-      id: d.id,
-      name: d.name,
-      latitude: d.latitude!,
-      longitude: d.longitude!,
-      color: risks[d.id] ? RISK_COLORS[risks[d.id]] : '#64748B',
-    })), [districts, risks]);
+    .map(d => {
+      const risk = risks[d.id];
+      return {
+        id: d.id,
+        name: d.name,
+        latitude: d.latitude!,
+        longitude: d.longitude!,
+        color: risk ? RISK_COLORS[risk] : '#64748B',
+      };
+    }), [districts, risks]);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow) return;
       const payload = event.data;
       if (payload?.type !== 'DENGUETRACE_SELECT_DISTRICT') return;
-      const id = Number(payload.id);
-      if (Number.isSafeInteger(id) && markers.some(d => d.id === id)) onSelect(id);
+      const marker = markers.find(d => d.id === payload.id);
+      if (marker) onSelect(marker.id);
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);

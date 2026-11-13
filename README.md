@@ -18,6 +18,7 @@ Expo SDK 58 · React Native · TypeScript · Expo Router · Axios · expo-secure
 - **APIs externas:** mapas (react-native-maps) y clima actual (Open-Meteo).
 - Notificaciones push con Firebase Cloud Messaging (en builds de EAS).
 - Detección de conexión con banner "Sin conexión", estados de carga, error con reintento y vacío.
+- Catálogo de referencia en el mapa si el servidor devuelve una lista vacía. Se puede buscar por distrito, provincia o departamento y consultar el ubigeo y las coordenadas de la capital distrital. Los autorreportes usan distritos registrados en la API. [Fuente y licencia del catálogo](src/data/LICENCIA-distritos.txt).
 
 ## Cómo correrlo
 

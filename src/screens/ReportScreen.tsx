@@ -27,6 +27,7 @@ export default function ReportScreen() {
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const selectedDistrict = districts.data?.find(district => district.id === districtId);
 
   const toggle = (symptom: Symptom) => {
     setSymptoms(prev => prev.includes(symptom) ? prev.filter(s => s !== symptom) : [...prev, symptom]);
@@ -54,12 +55,12 @@ export default function ReportScreen() {
   const submit = async () => {
     setMessage(null);
     setError(null);
-    if (districtId == null) { setError('Selecciona el distrito donde presentas los síntomas.'); return; }
+    if (!selectedDistrict || districts.loading) { setError('Selecciona un distrito registrado para enviar el autorreporte.'); return; }
     if (!symptoms.length) { setError('Selecciona al menos un síntoma.'); return; }
     setSending(true);
     try {
       const result = await reportService.create({
-        districtId,
+        districtId: selectedDistrict.id,
         symptoms: serializeSymptoms(symptoms),
         ...(coords ?? {}),
       });
@@ -80,6 +81,9 @@ export default function ReportScreen() {
       <Text style={s.muted}>Comparte señales de posible dengue para apoyar la vigilancia. Este formulario no reemplaza una evaluación médica.</Text>
       <Panel title="1. Ubicación del reporte">
         {districts.error ? <Message text={districts.error.message} action="Reintentar" onAction={districts.reload} /> : null}
+        {!districts.loading && districts.data?.length === 0 ? (
+          <Message text="Podrás enviar el autorreporte cuando el servidor registre tu distrito." action="Actualizar distritos" onAction={districts.reload} />
+        ) : null}
         <DistrictPicker label="Distrito donde presentas los síntomas" value={districtId} onChange={setDistrictId} districts={districts.data} loading={districts.loading} />
         <PrimaryButton title={coords ? 'Actualizar ubicación GPS' : 'Adjuntar ubicación GPS (opcional)'} onPress={() => void locate()} loading={gettingLocation} variant="secondary" />
         <Text style={s.muted}>Solo se solicita permiso al tocar el botón. La ubicación exacta se enviará con el reporte si la adjuntas.</Text>
@@ -96,7 +100,7 @@ export default function ReportScreen() {
       </Panel>
       {error ? <Message text={error} /> : null}
       {message ? <Message text={message} /> : null}
-      <PrimaryButton title="Enviar autorreporte" onPress={() => void submit()} loading={sending} disabled={districtId == null || symptoms.length === 0} />
+      <PrimaryButton title="Enviar autorreporte" onPress={() => void submit()} loading={sending} disabled={!selectedDistrict || districts.loading || symptoms.length === 0} />
       <Panel title="Mis reportes recientes">
         {reports.loading ? <Text style={s.muted}>Cargando reportes…</Text> : reports.error ? <Message text={reports.error.message} action="Reintentar" onAction={reports.reload} /> : reports.data?.length ? [...reports.data].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5).map(report => (
           <View key={report.id} style={s.historyItem}>
