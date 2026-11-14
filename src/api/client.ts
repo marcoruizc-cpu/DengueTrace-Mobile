@@ -8,7 +8,7 @@ export const API_URL = process.env.EXPO_PUBLIC_API_URL as string;
 if (!API_URL) {
   // Sin esto, axios llama a una dirección vacía y solo se ve "No pudimos conectar".
   console.error(
-    '[DengueTrace] Falta EXPO_PUBLIC_API_URL en el archivo .env (ejemplo: http://172.20.10.3:8080/api/v1). ' +
+    '[DengueTrace] Falta EXPO_PUBLIC_API_URL en el archivo .env. ' +
       'Guárdalo y reinicia con: npx expo start --clear',
   );
 } else {
