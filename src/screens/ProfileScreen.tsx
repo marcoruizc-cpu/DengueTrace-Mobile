@@ -126,6 +126,8 @@ export default function ProfileScreen() {
               onChange={onChange}
               districts={districts.data}
               loading={districts.loading}
+              error={districts.error?.message}
+              onRetry={districts.reload}
               emptyLabel="Sin elegir"
             />
           )}

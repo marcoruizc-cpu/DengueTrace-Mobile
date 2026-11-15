@@ -17,6 +17,7 @@ interface DistrictPickerProps<Id extends number | string> {
   loading?: boolean;
   emptyLabel?: string;
   error?: string;
+  onRetry?: () => void;
 }
 
 function searchable(value: string) {
@@ -24,20 +25,21 @@ function searchable(value: string) {
 }
 
 export function DistrictPicker<Id extends number | string>({
-  label, value, onChange, districts, loading, emptyLabel = 'Elegir después', error,
+  label, value, onChange, districts, loading, emptyLabel = 'Elegir después', error, onRetry,
 }: DistrictPickerProps<Id>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const selected = districts?.find(d => d.id === value);
   const empty = districts?.length === 0;
   const fieldText = loading ? 'Cargando distritos…' : empty ? 'No hay distritos registrados' :
-    selected ? `${selected.name} · ${selected.department}` : emptyLabel;
+    selected ? `${selected.name} · ${selected.province} · ${selected.department}` : emptyLabel;
 
   const filtered = useMemo(() => {
-    const q = searchable(query.trim());
     if (!districts) return [];
-    if (!q) return districts;
-    return districts.filter(district =>
+    const sorted = [...districts].sort((a,b) => a.name.localeCompare(b.name, 'es', {sensitivity: 'base'}));
+    const q = searchable(query.trim());
+    if (!q) return sorted.slice(0,10);
+    return sorted.filter(district =>
       searchable([district.name, district.province, district.department].join(' ')).includes(q));
   }, [districts, query]);
 
@@ -52,7 +54,7 @@ export function DistrictPicker<Id extends number | string>({
       <Text style={styles.label}>{label}</Text>
       <Pressable
         onPress={() => setOpen(true)}
-        disabled={loading || empty}
+        disabled={loading || empty || !!error}
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${fieldText}`}
         style={[styles.field, error ? { borderColor: colors.danger } : null]}
@@ -61,7 +63,11 @@ export function DistrictPicker<Id extends number | string>({
           {fieldText}
         </Text>
       </Pressable>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error && onRetry ? (
+        <Pressable onPress={onRetry} accessibilityRole="button">
+          <Text style={{ color: colors.primary, fontWeight: '700' }}>Reintentar</Text>
+        </Pressable>
+      ) : null}
 
       <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
         <View style={styles.modal}>

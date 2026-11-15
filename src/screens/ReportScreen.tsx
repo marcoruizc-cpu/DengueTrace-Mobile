@@ -40,7 +40,7 @@ export default function ReportScreen() {
     setMessage(null);
   };
   const submit = async () => {
-    if (sending) return;
+    if (sending || gps.loading) return;
     setMessage(null);
     setError(null);
     if (!selectedDistrict || districts.loading) {
@@ -109,7 +109,7 @@ export default function ReportScreen() {
 
       {error ? <Message text={error} /> : null}
       {message ? <Message text={message} /> : null}
-      <PrimaryButton title="Enviar autorreporte" onPress={() => void submit()} loading={sending} disabled={!selectedDistrict || districts.loading || symptoms.length === 0} />
+      <PrimaryButton title="Enviar autorreporte" onPress={() => void submit()} loading={sending} disabled={!selectedDistrict || districts.loading || symptoms.length === 0 || gps.loading}/>
 
       <MotionSensorPanel />
 
