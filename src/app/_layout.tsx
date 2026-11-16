@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRootNavigationState, useRouter } from 'expo-router';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { LoadingView } from '../components/LoadingView';
 import { AuthProvider } from '../contexts/AuthProvider';
@@ -19,12 +20,20 @@ Notifications.setNotificationHandler({
 function RootNavigator() {
   const { status } = useAuth();
   const router = useRouter();
+  const navigationReady = Boolean(useRootNavigationState()?.key);
 
-  // Al tocar una notificación de alerta, se abre la pestaña Noticias.
   useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(() => router.push('/news'));
+    if (Platform.OS === 'web' || status !== 'authenticated' || !navigationReady) return;
+
+    const openAlerts = () => {
+      router.navigate('/alerts');
+      Notifications.clearLastNotificationResponse();
+    };
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(openAlerts);
+    if (Notifications.getLastNotificationResponse()) openAlerts();
     return () => subscription.remove();
-  }, [router]);
+  }, [navigationReady, router, status]);
 
   if (status === 'checking') return <LoadingView message="Cargando tu sesión…" />;
   const signedIn = status === 'authenticated';
