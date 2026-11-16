@@ -17,8 +17,18 @@ export const RISK_META: Record<RiskLevel, { label: string; color: string }> = {
 
 export const serializeSymptoms = (symptoms: Symptom[]) => symptoms.join(',');
 
-export const parseSymptoms = (raw: string): Symptom[] =>
-  raw
-    .split(',')
-    .map(s => s.trim())
-    .filter((s): s is Symptom => s in SYMPTOM_LABELS);
+const isSymptomCode = (value: string): value is Symptom => Object.hasOwn(SYMPTOM_LABELS, value);
+
+export function formatReportedSymptoms(raw: string): string {
+  if (!raw.trim()) return 'Síntomas enviados';
+
+  const codes = raw.split(',').map(value => value.trim());
+  if (codes.every(isSymptomCode)) {
+    return codes.map(code => SYMPTOM_LABELS[code]).join(' · ');
+  }
+
+  return raw.split(/([,\r\n])/).map(part => {
+    const value = part.trim();
+    return isSymptomCode(value) ? part.replace(value, SYMPTOM_LABELS[value]) : part;
+  }).join('');
+}

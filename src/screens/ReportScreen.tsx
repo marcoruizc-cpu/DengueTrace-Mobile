@@ -11,7 +11,7 @@ import { useReportLocation } from '../hooks/useReportLocation';
 import { districtService } from '../services/districtService';
 import { reportService } from '../services/reportService';
 import type { Symptom } from '../types/api';
-import { serializeSymptoms, SYMPTOM_LABELS, parseSymptoms } from '../utils/constants';
+import { formatReportedSymptoms, serializeSymptoms, SYMPTOM_LABELS } from '../utils/constants';
 import { colors } from '../utils/theme';
 
 const OPTIONS = Object.keys(SYMPTOM_LABELS) as Symptom[];
@@ -121,7 +121,7 @@ export default function ReportScreen() {
             <View key={report.id} style={s.historyItem}>
               <Text style={s.optionText}>{report.districtName ?? `Distrito #${report.districtId}`}</Text>
               <Text style={s.muted}>Reporte #{report.id} · {formatDate(report.createdAt)}</Text>
-              <Text style={s.muted}>{parseSymptoms(report.symptoms).map(symptom => SYMPTOM_LABELS[symptom]).join(' · ') || 'Síntomas enviados'}</Text>
+              <Text style={s.muted}>{formatReportedSymptoms(report.symptoms)}</Text>
             </View>
           ))
         ) : <Text style={s.muted}>Todavía no tienes autorreportes.</Text>}
