@@ -121,7 +121,10 @@ export default function ReportScreen() {
             <View key={report.id} style={s.historyItem}>
               <Text style={s.optionText}>{report.districtName ?? `Distrito #${report.districtId}`}</Text>
               <Text style={s.muted}>Reporte #{report.id} · {formatDate(report.createdAt)}</Text>
-              <Text style={s.muted}>{parseSymptoms(report.symptoms).map(symptom => SYMPTOM_LABELS[symptom]).join(' · ') || 'Síntomas enviados'}</Text>
+              <Text style={s.muted}>{(() => {
+                const parsed = parseSymptoms(report.symptoms);
+                return parsed.length ? parsed.map(symptom => SYMPTOM_LABELS[symptom]).join(' · ') : report.symptoms;
+              })()}</Text>
             </View>
           ))
         ) : <Text style={s.muted}>Todavía no tienes autorreportes.</Text>}
