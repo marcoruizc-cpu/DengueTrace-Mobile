@@ -125,6 +125,8 @@ export default function RegisterScreen() {
               onChange={onChange}
               districts={districts.data}
               loading={districts.loading}
+              error={districts.error?.message}
+              onRetry={districts.reload}
             />
           )}
         />

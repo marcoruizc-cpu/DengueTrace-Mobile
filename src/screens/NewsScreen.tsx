@@ -34,7 +34,7 @@ export default function NewsScreen() {
   // La API solo tiene endpoint por distrito. Si el usuario aún no eligió, usa el primero registrado.
   const districtId = chosenId ?? districts.data?.[0]?.id ?? null;
   const news = useFetch(signal => districtId === null ? Promise.resolve([]) : newsService.getByDistrict(districtId, signal), [districtId]);
-  const canSync = user?.role === 'ADMIN' || user?.role === 'MODERATOR';
+  const canSync = user?.role === 'ADMIN';
   const selectedDistrict = districts.data?.find(d => d.id === districtId);
 
   const articles = useMemo(() => {

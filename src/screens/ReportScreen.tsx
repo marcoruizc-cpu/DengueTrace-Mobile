@@ -40,7 +40,7 @@ export default function ReportScreen() {
     setMessage(null);
   };
   const submit = async () => {
-    if (sending) return;
+    if (sending || gps.loading) return;
     setMessage(null);
     setError(null);
     if (!selectedDistrict || districts.loading) {
@@ -109,7 +109,7 @@ export default function ReportScreen() {
 
       {error ? <Message text={error} /> : null}
       {message ? <Message text={message} /> : null}
-      <PrimaryButton title="Enviar autorreporte" onPress={() => void submit()} loading={sending} disabled={!selectedDistrict || districts.loading || symptoms.length === 0} />
+      <PrimaryButton title="Enviar autorreporte" onPress={() => void submit()} loading={sending} disabled={!selectedDistrict || districts.loading || symptoms.length === 0 || gps.loading}/>
 
       <MotionSensorPanel />
 
@@ -121,7 +121,10 @@ export default function ReportScreen() {
             <View key={report.id} style={s.historyItem}>
               <Text style={s.optionText}>{report.districtName ?? `Distrito #${report.districtId}`}</Text>
               <Text style={s.muted}>Reporte #{report.id} · {formatDate(report.createdAt)}</Text>
-              <Text style={s.muted}>{parseSymptoms(report.symptoms).map(symptom => SYMPTOM_LABELS[symptom]).join(' · ') || 'Síntomas enviados'}</Text>
+              <Text style={s.muted}>{(() => {
+                const parsed = parseSymptoms(report.symptoms);
+                return parsed.length ? parsed.map(symptom => SYMPTOM_LABELS[symptom]).join(' · ') : report.symptoms;
+              })()}</Text>
             </View>
           ))
         ) : <Text style={s.muted}>Todavía no tienes autorreportes.</Text>}
