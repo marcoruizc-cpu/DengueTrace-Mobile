@@ -28,6 +28,7 @@ export default function TabsLayout() {
           headerStatusBarHeight: isOnline ? undefined : 0,
         }}
       >
+        <Tabs.Screen name="panel" options={{ title: 'Panel', href: Platform.OS === 'web' ? null : undefined, tabBarIcon: tabIcon('grid-outline') }} />
         <Tabs.Screen name="index" options={{ title: Platform.OS === 'web' ? 'Panel' : 'Mapa', tabBarIcon: tabIcon(Platform.OS === 'web' ? 'grid-outline' : 'map-outline') }} />
         <Tabs.Screen name="web-map" options={{ title: 'Mapa', href: Platform.OS === 'web' ? '/web-map' : null, tabBarIcon: tabIcon('map-outline') }} />
         <Tabs.Screen name="dashboard" options={{ title: 'Panel', href: Platform.OS === 'web' ? null : ('/dashboard' as any), tabBarIcon: tabIcon('grid-outline') }} />

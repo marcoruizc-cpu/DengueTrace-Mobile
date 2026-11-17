@@ -13,7 +13,7 @@ import { historicalCaseService } from '../services/historicalCaseService';
 import { predictiveService } from '../services/predictiveService';
 import { colors } from '../utils/theme';
 
-export default function DashboardWebScreen() {
+export default function DashboardScreen() {
   const { user } = useAuth();
   const [chosenDistrictId, setDistrictId] = useState<number | null>(user?.districtId ?? null);
   const districts = useFetch(signal => districtService.getAll(signal), []);
@@ -32,7 +32,7 @@ export default function DashboardWebScreen() {
   return (
     <ScrollView contentContainerStyle={s.page}>
       <View style={s.hero}>
-        <Text style={s.brand}>DENGUETRACE · PANEL WEB</Text>
+        <Text style={s.brand}>DENGUETRACE</Text>
         <Text style={s.title}>Panel de vigilancia</Text>
         <Text style={s.heroText}>Casos registrados, pronóstico por distrito y alertas vigentes.</Text>
       </View>
@@ -51,7 +51,13 @@ export default function DashboardWebScreen() {
       <View style={s.columns}>
         <View style={s.column}>
           <Panel title="Casos históricos" subtitle="Hasta doce semanas recientes disponibles">
-            {cases.loading ? <Text>Cargando…</Text> : cases.error ? <Message text={cases.error.message} action="Reintentar" onAction={cases.reload} /> : <BarChart data={history} />}
+            {cases.loading ? <Text>Cargando…</Text> : cases.error ? (
+              <Message text={cases.error.message} action="Reintentar" onAction={cases.reload} />
+            ) : (
+              <ScrollView horizontal contentContainerStyle={{ flexGrow: 1, minWidth: history.length * 34 }}>
+                <BarChart data={history} />
+              </ScrollView>
+            )}
           </Panel>
         </View>
         <View style={s.column}>
@@ -74,7 +80,7 @@ const s = StyleSheet.create({
   heroText: { color: '#E0F2FE', lineHeight: 20 },
   metrics: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   columns: { flexDirection: 'row', gap: 14, flexWrap: 'wrap' },
-  column: { flex: 1, minWidth: 280 },
+  column: { flexGrow: 1, flexShrink: 1, flexBasis: 280, minWidth: 0 },
   line: { flexDirection: 'row', gap: 10, alignItems: 'center', flexWrap: 'wrap' },
   location: { color: colors.text, fontWeight: '700' },
   action: { backgroundColor: colors.primarySoft, borderRadius: 10, padding: 12 },
